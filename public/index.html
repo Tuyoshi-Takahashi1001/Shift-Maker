@@ -350,6 +350,8 @@ input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-colo
     <button class="btn" onclick="copyText()">コピー</button>
     <div class="divider"></div>
     <button class="btn" onclick="addRow()">＋ 行追加</button>
+    <div class="divider"></div>
+    <button class="btn" id="memoToggleBtn" onclick="toggleMemo()">メモ含む</button>
     <span class="count-label"><b id="selCount">0</b> / <b id="totalCount">0</b> 件選択中</span>
   </div>
 
@@ -399,6 +401,7 @@ let rows = [];
 let currentKeyword = '';
 let accessToken = '';
 let refreshToken = '';
+let includeMemo = true;
 
 (function init() {
   const params = new URLSearchParams(location.search);
@@ -539,6 +542,17 @@ function getTargets() {
   return sel.length > 0 ? sel : rows;
 }
 
+// ===== メモトグル =====
+function toggleMemo() {
+  includeMemo = !includeMemo;
+  const btn = document.getElementById('memoToggleBtn');
+  btn.textContent = includeMemo ? 'メモ含む' : 'メモなし';
+  btn.style.background = includeMemo ? '' : '#FAEEDA';
+  btn.style.color = includeMemo ? '' : '#633806';
+  btn.style.borderColor = includeMemo ? '' : '#E8C87A';
+  showToast(includeMemo ? 'メモを出力に含めます' : 'メモを出力から除外します');
+}
+
 // ===== PDF印刷（ブラウザ印刷機能を使用） =====
 function printPDF() {
   const targets = getTargets();
@@ -553,10 +567,15 @@ function printPDF() {
   document.getElementById('printSub').textContent = 
     `出力日: ${new Date().toLocaleDateString('ja-JP')}  /  ${targets.length}件`;
 
+  // メモ列の表示/非表示
+  const memoCol = document.getElementById('printTable').querySelectorAll('.col-memo');
+  if (!includeMemo) memoCol.forEach(el => el.style.display = 'none');
+
   window.print();
 
   // 印刷後に戻す
   Array.from(allRows).forEach(tr => tr.style.display = '');
+  if (!includeMemo) memoCol.forEach(el => el.style.display = '');
 }
 
 // ===== LINE向けテキスト生成 =====
@@ -577,7 +596,7 @@ function buildText(targets) {
     const date = `${d.getMonth()+1}/${d.getDate()}(${getDay(r.date)})`;
     const person = r.person ? `｜${r.person}` : '';
     lines.push(`${date} ${r.content}${person}`);
-    if (r.memo) lines.push(`　${r.memo}`);
+    if (includeMemo && r.memo) lines.push(`　${r.memo}`);
   });
   
   return lines.join('\n');
