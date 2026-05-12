@@ -42,15 +42,32 @@ body {
   body { background: white; padding: 0; }
   #searchScreen, #shiftScreen .toolbar, #shiftScreen .top-bar { display: none !important; }
   #shiftScreen { display: block !important; padding: 0; }
-  .print-header { display: block !important; margin-bottom: 16px; }
-  .table-wrap { border: none; box-shadow: none; }
-  table { font-size: 11px; }
-  thead th { background: #f5f5f5 !important; -webkit-print-color-adjust: exact; }
+  .print-header { display: block !important; margin-bottom: 10px; }
+  .table-wrap { border: none; box-shadow: none; overflow: visible; }
+  table { font-size: 9px; table-layout: fixed; width: 100%; }
+  thead th {
+    background: #f5f5f5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    padding: 4px 6px !important;
+    font-size: 8px;
+  }
+  td { padding: 3px 6px !important; }
   .col-check { display: none; }
   td:first-child { display: none; }
-  .day-badge { -webkit-print-color-adjust: exact; }
+  .col-date { width: 72px !important; }
+  .col-day { width: 28px !important; }
+  .col-person { width: 64px !important; }
+  .col-memo { width: 30% !important; }
+  .day-badge {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    padding: 1px 4px !important;
+    font-size: 8px !important;
+  }
+  .date-mono { font-size: 9px !important; }
   tbody tr { break-inside: avoid; }
-  .editable { border: none !important; }
+  .editable { border: none !important; font-size: 9px !important; }
 }
 
 .print-header {
@@ -503,7 +520,7 @@ function renderTable() {
   if (!rows.length) { tb.innerHTML = '<tr><td colspan="6" class="empty-state">イベントが見つかりませんでした</td></tr>'; updateCount(); return; }
   tb.innerHTML = rows.map((r,i) => `
     <tr class="${r.checked?'checked':''}">
-      <td class="col-check"><input type="checkbox" ${r.checked?'checked':''} onchange="toggleRow(${i},this.checked)"></td>
+      <td class="col-check" onmousedown="onCheckMouseDown(${i},event)" onmouseenter="onCheckMouseEnter(${i})"><input type="checkbox" ${r.checked?'checked':''} onchange="toggleRow(${i},this.checked)"></td>
       <td class="col-date"><span class="date-mono">${fmtDateFull(r.date)}</span></td>
       <td class="col-day"><span class="day-badge ${dayClass(r.date)}">${getDay(r.date)}</span></td>
       <td class="col-content"><input class="editable" value="${esc(r.content)}" placeholder="内容" oninput="rows[${i}].content=this.value"></td>
@@ -624,6 +641,34 @@ function copyText() {
   const targets = getTargets();
   navigator.clipboard.writeText(buildText(targets))
     .then(() => showToast(`${targets.length}件コピーしました`));
+}
+
+// ===== ドラッグ選択 =====
+let isDragging = false;
+let dragStartChecked = false;
+
+document.addEventListener('mouseup', () => { isDragging = false; });
+
+function onCheckMouseDown(i, e) {
+  isDragging = true;
+  dragStartChecked = !rows[i].checked;
+  rows[i].checked = dragStartChecked;
+  const tr = document.getElementById('tbody').rows[i];
+  tr.className = dragStartChecked ? 'checked' : '';
+  const cb = tr.querySelector('input[type=checkbox]');
+  cb.checked = dragStartChecked;
+  updateCount();
+  e.preventDefault();
+}
+
+function onCheckMouseEnter(i) {
+  if (!isDragging) return;
+  rows[i].checked = dragStartChecked;
+  const tr = document.getElementById('tbody').rows[i];
+  tr.className = dragStartChecked ? 'checked' : '';
+  const cb = tr.querySelector('input[type=checkbox]');
+  cb.checked = dragStartChecked;
+  updateCount();
 }
 
 function showLoading(msg) { document.getElementById('loadingText').textContent = msg || ''; document.getElementById('loading').classList.add('show'); }
