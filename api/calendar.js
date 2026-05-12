@@ -1,6 +1,8 @@
-const { google } = require('googleapis');
+﻿const { google } = require('googleapis');
 
 const STAFF = ['宮田','樽田','箕輪','白石','佐久間','香取','宮下','杉之下','下山','内藤','堀','菅原','大浦','佐竹','山上','高橋'];
+
+const ALLOWED_CALENDARS = ['REVEL MNP確定スケジュール', 'REVEL MNP仮スケジュール'];
 
 function extractPersons(title) {
   return STAFF.filter(n => title.includes(n)).join('・');
@@ -37,9 +39,10 @@ module.exports = async function handler(req, res) {
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
-    // まず全カレンダー一覧を取得
     const calList = await calendar.calendarList.list();
-    const calendars = calList.data.items || [];
+    const calendars = (calList.data.items || []).filter(cal =>
+      ALLOWED_CALENDARS.some(name => cal.summary && cal.summary.includes(name))
+    );
 
     const timeMin = dateFrom
       ? new Date(dateFrom + 'T00:00:00+09:00').toISOString()
@@ -48,7 +51,6 @@ module.exports = async function handler(req, res) {
       ? new Date(dateTo + 'T23:59:59+09:00').toISOString()
       : new Date(new Date().getFullYear(), 11, 31).toISOString();
 
-    // 全カレンダーからキーワード検索
     const allEvents = [];
     await Promise.all(
       calendars.map(async (cal) => {
@@ -76,13 +78,10 @@ module.exports = async function handler(req, res) {
               calendarName: cal.summary || ''
             });
           });
-        } catch (_) {
-          // 権限のないカレンダーはスキップ
-        }
+        } catch (_) {}
       })
     );
 
-    // 日付でソート・重複除去（同じ日付+内容）
     const seen = new Set();
     const unique = allEvents
       .sort((a, b) => a.date.localeCompare(b.date))
