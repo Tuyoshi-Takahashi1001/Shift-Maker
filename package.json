@@ -1,0 +1,11 @@
+{
+  "name": "shift-maker",
+  "version": "1.0.0",
+  "description": "Shift Maker — Googleカレンダー連携シフト表ツール",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "googleapis": "^140.0.0"
+  }
+}

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shift Maker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #F7F6F2;
+  --surface: #FFFFFF;
+  --border: #E2E0D8;
+  --border-strong: #C8C5BB;
+  --text: #1A1916;
+  --text-muted: #7A7870;
+  --text-faint: #B0AEA6;
+  --accent: #1A1916;
+  --accent-hover: #3D3B35;
+  --blue: #2B5CE6;
+  --blue-bg: #EEF2FD;
+  --green: #1E7B4B;
+  --green-bg: #EDFAF3;
+  --red: #C0392B;
+  --sat-bg: #EEF2FD; --sat-text: #2B5CE6;
+  --sun-bg: #FDE8E8; --sun-text: #C0392B;
+  --wk-bg:  #EDFAF3; --wk-text: #1E7B4B;
+  --row-check: #FFFEF5;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ===== SEARCH SCREEN ===== */
+#searchScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.logo {
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+}
+
+.search-title {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: .5rem;
+}
+
+.search-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 2.5rem;
+}
+
+.search-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: var(--shadow);
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: 'Noto Sans JP', sans-serif;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color .15s;
+  margin-bottom: 1rem;
+}
+.search-input:focus { border-color: var(--accent); }
+
+.date-row {
+  display: flex;
+  gap: .75rem;
+  margin-bottom: 1.25rem;
+}
+.date-row .field { flex: 1; }
+
+.date-input {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-family: 'DM Mono', monospace;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+.date-input:focus { border-color: var(--accent); }
+
+.btn-search {
+  width: 100%;
+  padding: 13px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  letter-spacing: 0.02em;
+}
+.btn-search:hover { background: var(--accent-hover); }
+.btn-search:active { transform: scale(0.98); }
+.btn-search:disabled { background: var(--border-strong); cursor: not-allowed; }
+
+.auth-section {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.auth-status {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: .75rem;
+  font-family: 'DM Mono', monospace;
+}
+.auth-status.connected { color: var(--green); }
+.auth-status.connected::before { content: '✓ '; }
+
+.btn-auth {
+  padding: 9px 20px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .12s;
+}
+.btn-auth:hover { background: var(--bg); }
+
+.search-error {
+  font-size: 12px;
+  color: var(--red);
+  margin-top: .75rem;
+  text-align: center;
+  min-height: 18px;
+}
+
+/* ===== SHIFT TABLE SCREEN ===== */
+#shiftScreen {
+  display: none;
+  padding: 1.5rem;
+  min-height: 100vh;
+}
+
+.top-bar {
+  max-width: 1040px;
+  margin: 0 auto 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: background .1s;
+  flex-shrink: 0;
+}
+.back-btn:hover { background: var(--bg); }
+
+.top-title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.top-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+  margin-top: 1px;
+}
+
+.toolbar {
+  max-width: 1040px;
+  margin: 0 auto 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .65rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow);
+}
+
+.toolbar-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 13px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  transition: background .1s, transform .1s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--bg); }
+.btn:active { transform: scale(0.97); }
+
+.btn-accent { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+.btn-blue { color: var(--blue); border-color: var(--blue); }
+.btn-blue:hover { background: var(--blue-bg); }
+
+.divider { width: 1px; height: 18px; background: var(--border); }
+
+.count-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+  margin-left: auto;
+}
+.count-label b { color: var(--text); }
+
+.table-wrap {
+  max-width: 1040px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; }
+
+thead th {
+  background: var(--bg);
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 9px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 2;
+}
+
+tbody tr { border-bottom: 1px solid var(--border); transition: background .08s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: #FAFAF8; }
+tbody tr.checked { background: var(--row-check); }
+
+td { padding: 8px 12px; vertical-align: middle; }
+
+.col-check { width: 40px; text-align: center; }
+.col-date  { width: 98px; }
+.col-day   { width: 42px; }
+.col-content { }
+.col-person { width: 100px; }
+.col-memo  { width: 200px; }
+
+input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: var(--accent); }
+
+.day-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 500; }
+.day-sat { background: var(--sat-bg); color: var(--sat-text); }
+.day-sun { background: var(--sun-bg); color: var(--sun-text); }
+.day-wk  { background: var(--wk-bg);  color: var(--wk-text); }
+
+.date-mono { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); }
+
+.editable {
+  border: none; background: transparent; width: 100%;
+  font-size: 13px; font-family: 'Noto Sans JP', sans-serif;
+  color: var(--text); outline: none; padding: 1px 0;
+}
+.editable::placeholder { color: var(--text-faint); }
+.editable:focus { border-bottom: 1px solid var(--border-strong); }
+
+/* テキストモーダル */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.3); z-index: 100;
+  align-items: center; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: 12px;
+  padding: 1.5rem; width: 500px; max-width: 92vw;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.16);
+}
+.modal h3 { font-size: 14px; font-weight: 700; margin-bottom: 1rem; }
+.modal textarea {
+  width: 100%; height: 300px;
+  font-family: 'DM Mono', monospace; font-size: 11px;
+  border: 1px solid var(--border); border-radius: 7px;
+  padding: .75rem; resize: vertical;
+  background: var(--bg); color: var(--text); outline: none;
+}
+.modal-footer { display: flex; gap: .5rem; margin-top: .75rem; justify-content: flex-end; }
+
+/* ローディング */
+.loading {
+  display: none; position: fixed; inset: 0;
+  background: rgba(247,246,242,0.85); z-index: 200;
+  flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+}
+.loading.show { display: flex; }
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 13px; color: var(--text-muted); }
+
+/* トースト */
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--accent); color: #fff;
+  padding: 10px 18px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .25s, transform .25s;
+  z-index: 300; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+.empty-state {
+  text-align: center; padding: 3rem;
+  color: var(--text-faint); font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<!-- ===== 検索画面 ===== -->
+<div id="searchScreen">
+  <div class="logo">Shift Maker</div>
+  <div class="search-title">スケジュール検索</div>
+  <div class="search-sub">案件名を入力してGoogleカレンダーからシフト表を生成します</div>
+
+  <div class="search-card">
+    <label class="field-label">案件名キーワード</label>
+    <input type="text" id="keyword" class="search-input" placeholder="例：秋山黄色" autocomplete="off">
+
+    <div class="date-row">
+      <div class="field">
+        <label class="field-label">開始日</label>
+        <input type="date" id="dateFrom" class="date-input">
+      </div>
+      <div class="field">
+        <label class="field-label">終了日</label>
+        <input type="date" id="dateTo" class="date-input">
+      </div>
+    </div>
+
+    <button class="btn-search" id="searchBtn" onclick="doSearch()">検索してシフト表を生成</button>
+    <div class="search-error" id="searchError"></div>
+
+    <div class="auth-section">
+      <div class="auth-status" id="authStatus">Googleカレンダーに未接続</div>
+      <button class="btn-auth" onclick="loginGoogle()">Googleカレンダーに接続</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== シフト表画面 ===== -->
+<div id="shiftScreen">
+  <div class="top-bar">
+    <button class="back-btn" onclick="goBack()">← 戻る</button>
+    <div>
+      <div class="top-title" id="shiftTitle">シフト表</div>
+      <div class="top-sub" id="shiftSub"></div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="toolbar-label">選択</span>
+    <button class="btn" onclick="selectAll()">全選択</button>
+    <button class="btn" onclick="selectNone()">全解除</button>
+    <div class="divider"></div>
+    <span class="toolbar-label">出力</span>
+    <button class="btn btn-accent" onclick="exportPDF()">PDF出力</button>
+    <button class="btn btn-blue" onclick="showTextModal()">テキスト出力</button>
+    <button class="btn" onclick="copyText()">コピー</button>
+    <div class="divider"></div>
+    <button class="btn" onclick="addRow()">＋ 行追加</button>
+    <span class="count-label"><b id="selCount">0</b> / <b id="totalCount">0</b> 件選択中</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-check"><input type="checkbox" id="masterCheck" onchange="toggleAll(this.checked)" title="全選択"></th>
+          <th class="col-date">日付</th>
+          <th class="col-day">曜</th>
+          <th class="col-content">内容</th>
+          <th class="col-person">担当者</th>
+          <th class="col-memo">メモ</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="6" class="empty-state">検索してください</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- テキストモーダル -->
+<div class="modal-bg" id="modalBg" onclick="closeModalBg(event)">
+  <div class="modal">
+    <h3>テキスト出力</h3>
+    <textarea id="textOut" readonly></textarea>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">閉じる</button>
+      <button class="btn" onclick="dlTxt()">保存</button>
+      <button class="btn btn-accent" onclick="copyModal()">コピー</button>
+    </div>
+  </div>
+</div>
+
+<!-- ローディング -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">カレンダーを取得中...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const DAYS = ['日','月','火','水','木','金','土'];
+let rows = [];
+let currentKeyword = '';
+let accessToken = '';
+let refreshToken = '';
+
+// ===== 初期化 =====
+(function init() {
+  // URLパラメータからトークン取得（OAuth callback後）
+  const params = new URLSearchParams(location.search);
+  if (params.get('access_token')) {
+    accessToken = params.get('access_token');
+    refreshToken = params.get('refresh_token') || '';
+    sessionStorage.setItem('access_token', accessToken);
+    sessionStorage.setItem('refresh_token', refreshToken);
+    history.replaceState({}, '', '/');
+  }
+  // sessionStorageから復元
+  accessToken = sessionStorage.getItem('access_token') || '';
+  refreshToken = sessionStorage.getItem('refresh_token') || '';
+  updateAuthStatus();
+
+  // デフォルト日付
+  const today = new Date();
+  const end = new Date(today.getFullYear(), 11, 31);
+  document.getElementById('dateFrom').value = fmt8(new Date(today.getFullYear(), 0, 1));
+  document.getElementById('dateTo').value = fmt8(end);
+
+  // Enterキー検索
+  document.getElementById('keyword').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doSearch();
+  });
+})();
+
+function fmt8(d) { return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function pad(n) { return String(n).padStart(2,'0'); }
+function fmtDate(s) {
+  const d = new Date(s + 'T00:00:00+09:00');
+  return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
+}
+function getDay(s) { return DAYS[new Date(s+'T00:00:00+09:00').getDay()]; }
+function dayClass(s) { const d = new Date(s+'T00:00:00+09:00').getDay(); return d===0?'day-sun':d===6?'day-sat':'day-wk'; }
+
+function updateAuthStatus() {
+  const el = document.getElementById('authStatus');
+  if (accessToken) {
+    el.textContent = 'Googleカレンダーに接続済み';
+    el.className = 'auth-status connected';
+  } else {
+    el.textContent = 'Googleカレンダーに未接続';
+    el.className = 'auth-status';
+  }
+}
+
+function loginGoogle() {
+  location.href = '/api/auth?action=login';
+}
+
+// ===== 検索 =====
+async function doSearch() {
+  const keyword = document.getElementById('keyword').value.trim();
+  const dateFrom = document.getElementById('dateFrom').value;
+  const dateTo = document.getElementById('dateTo').value;
+  const errEl = document.getElementById('searchError');
+  errEl.textContent = '';
+
+  if (!keyword) { errEl.textContent = '案件名を入力してください'; return; }
+  if (!accessToken) { errEl.textContent = 'Googleカレンダーに接続してください'; return; }
+
+  showLoading('カレンダーを検索中...');
+  document.getElementById('searchBtn').disabled = true;
+
+  try {
+    const params = new URLSearchParams({ keyword, dateFrom, dateTo, access_token: accessToken, refresh_token: refreshToken });
+    const res = await fetch(`/api/calendar?${params}`);
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.detail || data.error || 'エラーが発生しました');
+    if (!data.events || data.events.length === 0) {
+      hideLoading();
+      errEl.textContent = `「${keyword}」のイベントが見つかりませんでした`;
+      document.getElementById('searchBtn').disabled = false;
+      return;
+    }
+
+    currentKeyword = keyword;
+    rows = data.events.map(ev => ({ ...ev, checked: false }));
+    showShiftScreen(keyword, dateFrom, dateTo);
+
+  } catch (e) {
+    errEl.textContent = e.message;
+  } finally {
+    hideLoading();
+    document.getElementById('searchBtn').disabled = false;
+  }
+}
+
+// ===== 画面切替 =====
+function showShiftScreen(keyword, from, to) {
+  document.getElementById('searchScreen').style.display = 'none';
+  document.getElementById('shiftScreen').style.display = 'block';
+  document.getElementById('shiftTitle').textContent = `「${keyword}」スケジュール表`;
+  document.getElementById('shiftSub').textContent = `${from} 〜 ${to}  /  ${rows.length}件取得`;
+  renderTable();
+}
+
+function goBack() {
+  document.getElementById('shiftScreen').style.display = 'none';
+  document.getElementById('searchScreen').style.display = 'flex';
+}
+
+// ===== テーブル =====
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function renderTable() {
+  const tb = document.getElementById('tbody');
+  if (!rows.length) {
+    tb.innerHTML = '<tr><td colspan="6" class="empty-state">イベントが見つかりませんでした</td></tr>';
+    updateCount(); return;
+  }
+  tb.innerHTML = rows.map((r,i) => `
+    <tr class="${r.checked?'checked':''}">
+      <td class="col-check"><input type="checkbox" ${r.checked?'checked':''} onchange="toggleRow(${i},this.checked)"></td>
+      <td class="col-date"><span class="date-mono">${fmtDate(r.date)}</span></td>
+      <td class="col-day"><span class="day-badge ${dayClass(r.date)}">${getDay(r.date)}</span></td>
+      <td class="col-content"><input class="editable" value="${esc(r.content)}" placeholder="内容" oninput="rows[${i}].content=this.value"></td>
+      <td class="col-person"><input class="editable" value="${esc(r.person)}" placeholder="未定" oninput="rows[${i}].person=this.value"></td>
+      <td class="col-memo"><input class="editable" value="${esc(r.memo)}" placeholder="メモ" oninput="rows[${i}].memo=this.value"></td>
+    </tr>`).join('');
+  updateCount();
+}
+
+function toggleRow(i, checked) {
+  rows[i].checked = checked;
+  document.getElementById('tbody').rows[i].className = checked ? 'checked' : '';
+  updateCount();
+}
+function toggleAll(checked) { rows.forEach(r => r.checked = checked); renderTable(); }
+function selectAll() { rows.forEach(r => r.checked = true); renderTable(); }
+function selectNone() { rows.forEach(r => r.checked = false); renderTable(); }
+
+function updateCount() {
+  const sel = rows.filter(r => r.checked).length;
+  document.getElementById('selCount').textContent = sel;
+  document.getElementById('totalCount').textContent = rows.length;
+  const mc = document.getElementById('masterCheck');
+  mc.checked = sel === rows.length && rows.length > 0;
+  mc.indeterminate = sel > 0 && sel < rows.length;
+}
+
+function addRow() {
+  rows.push({ date: fmt8(new Date()), content:'', person:'', memo:'', checked: false });
+  renderTable();
+  showToast('行を追加しました');
+}
+
+// ===== 出力 =====
+function getTargets() {
+  const sel = rows.filter(r => r.checked);
+  return sel.length > 0 ? sel : rows;
+}
+
+function buildText(targets) {
+  const lines = [`■ ${currentKeyword} スケジュール表`, `出力日: ${new Date().toLocaleDateString('ja-JP')}`, ''];
+  lines.push('日付         曜日  内容                        担当者        メモ');
+  lines.push('─'.repeat(80));
+  targets.forEach(r => {
+    const d = fmtDate(r.date).padEnd(12);
+    const w = getDay(r.date).padEnd(4);
+    const c = (r.content||'').substring(0,26).padEnd(28);
+    const p = (r.person||'（未定）').padEnd(13);
+    lines.push(`${d} ${w} ${c} ${p} ${r.memo||''}`);
+  });
+  return lines.join('\n');
+}
+
+function showTextModal() {
+  document.getElementById('textOut').value = buildText(getTargets());
+  document.getElementById('modalBg').classList.add('open');
+}
+function closeModal() { document.getElementById('modalBg').classList.remove('open'); }
+function closeModalBg(e) { if (e.target === document.getElementById('modalBg')) closeModal(); }
+function copyModal() {
+  navigator.clipboard.writeText(document.getElementById('textOut').value)
+    .then(() => { closeModal(); showToast('コピーしました'); });
+}
+function dlTxt() {
+  const blob = new Blob([document.getElementById('textOut').value], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${currentKeyword}_シフト表.txt`;
+  a.click();
+  showToast('保存しました');
+}
+function copyText() {
+  const targets = getTargets();
+  navigator.clipboard.writeText(buildText(targets))
+    .then(() => showToast(`${targets.length}件コピーしました`));
+}
+
+function exportPDF() {
+  const targets = getTargets();
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
+  doc.setFont('helvetica');
+  doc.setFontSize(14);
+  doc.text(`${currentKeyword} — Schedule`, 14, 16);
+  doc.setFontSize(8); doc.setTextColor(130);
+  doc.text(`出力: ${new Date().toLocaleDateString('ja-JP')}  /  ${targets.length}件`, 14, 22);
+  doc.setTextColor(0);
+  const cols = ['日付','曜日','内容','担当者','メモ'];
+  const colW = [28,12,82,28,108];
+  const totalW = colW.reduce((a,b)=>a+b,0);
+  let x=14, y=32;
+  doc.setFillColor(245,244,240);
+  doc.rect(14,y-5,totalW,7,'F');
+  doc.setFontSize(8); doc.setTextColor(100);
+  cols.forEach((c,i)=>{ doc.text(c,x+2,y); x+=colW[i]; });
+  doc.setTextColor(0); y+=5;
+  targets.forEach(r => {
+    if(y>185){ doc.addPage(); y=20; }
+    x=14;
+    [fmtDate(r.date),getDay(r.date),r.content||'',r.person||'（未定）',r.memo||''].forEach((c,i)=>{
+      doc.text(String(c).substring(0,Math.floor(colW[i]/2.2)),x+2,y);
+      x+=colW[i];
+    });
+    doc.setDrawColor(220);
+    doc.line(14,y+2,14+totalW,y+2);
+    y+=8;
+  });
+  doc.save(`${currentKeyword}_シフト表.pdf`);
+  showToast(`PDF出力しました（${targets.length}件）`);
+}
+
+// ===== UI helpers =====
+function showLoading(msg) {
+  document.getElementById('loadingText').textContent = msg || '';
+  document.getElementById('loading').classList.add('show');
+}
+function hideLoading() { document.getElementById('loading').classList.remove('show'); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
