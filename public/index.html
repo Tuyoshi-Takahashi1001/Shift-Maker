@@ -594,7 +594,7 @@ function buildText(targets) {
     }
     
     const date = `${d.getMonth()+1}/${d.getDate()}(${getDay(r.date)})`;
-    const person = r.person ? `｜${r.person}` : '';
+    const person = r.person ? `｜${r.person}` : '｜未定';
     lines.push(`${date} ${r.content}${person}`);
     if (includeMemo && r.memo) lines.push(`　${r.memo}`);
   });
